@@ -12,6 +12,14 @@ String gpsData = "";
 >10: Poor
 */
 
+struct GPS_data {
+  double Latitude;
+  double Longitude;
+  String Satellites;
+  String Precision;
+  String Altitude;
+};
+
 void setup() {
   Serial.begin(9600);
   ss.begin(9600);
@@ -24,14 +32,24 @@ void loop() {
     
     if (c == '\n') {
       if (gpsData.startsWith("$GPGGA")) {
-        decodeGPGGA(gpsData);
+        GPS_data d = decodeGPGGA(gpsData);
+
+
+        Serial.print("Latitude: "); Serial.print(d.Latitude, 6);
+        Serial.print(", Longitude: "); Serial.print(d.Longitude, 6);
+        Serial.print(", Satellites: "); Serial.print(d.Satellites);
+        Serial.print(", Precision: "); Serial.print(d.Precision);
+        Serial.print(", Altitude: "); Serial.println(d.Altitude);;
+        
       }
       gpsData = "";
     }
   }
 }
 
-void decodeGPGGA(String sentence) {
+GPS_data decodeGPGGA(String sentence) {
+  GPS_data data;
+  
   int checksumIndex = sentence.indexOf('*');
   String usefulData = sentence.substring(1, checksumIndex);
   
@@ -55,21 +73,39 @@ void decodeGPGGA(String sentence) {
   String satellites_ = parts[7];
   if (satellites_.length() > 1 && satellites_[0] == '0') {
     satellites_ = satellites_.substring(1);
+    
   }
 
-  
+  /*
   // Serial.println("Decoded GPGGA Sentence:");
   // Serial.print("UTC Time: "); Serial.println(parts[1]);
+  
+  
   Serial.print("Latitude: "); Serial.print(latitude, 6);
   Serial.print(", Longitude: "); Serial.print(longitude, 6);
+  
+  
   // Serial.print("Fix Quality: "); Serial.println(parts[6]);
+  
+  
   Serial.print(", Satellites: "); Serial.print(satellites_);
   Serial.print(", Precision: "); Serial.print(parts[8]);
   Serial.print(", Altitude: "); Serial.print(parts[9]); Serial.print(" "); Serial.println(parts[10]);
+
+  
   // Serial.print("Height of Geoid: "); Serial.print(parts[11]); Serial.print(" "); Serial.println(parts[12]);
   // Serial.print("Time since last DGPS update: "); Serial.println(parts[13]);
   // Serial.print("DGPS reference station id: "); Serial.println(parts[14]);
   // Serial.println();
+  */
+
+  data.Latitude = latitude;
+  data.Longitude = longitude;
+  data.Satellites = satellites_;
+  data.Precision = parts[8];
+  data.Altitude = parts[9];
+
+  return data;
 }
 
 double convertToDecimalDegrees(String nmeaCoord, String direction) {
